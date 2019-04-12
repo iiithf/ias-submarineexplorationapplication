@@ -8,9 +8,59 @@ const path = require('path');
 const E = process.env;
 const PORT = parseInt(E['PORT']||'8000', 10);
 const ASSETS = path.join(__dirname, 'assets');
+const DEVICE = E['DEVICE']||'http://127.0.0.1:8000';
+const IMAGES = [
+  'ias-distancesensor', 'ias-sonarsensor', 'ias-floweranalysissensor',
+  'ias-navalminemodel', 'ias-irismodel', 'ias-distancealarmservice',
+  'ias-emergencynotificationservice', 'ias-counterservice', 'ias-irishelperservice',
+];
 const app = express();
 const server = http.createServer(app);
 
+
+
+async function imagesReady() {
+  return (await Promise.all(IMAGES.map(
+    i => needle('get', `${DEVICE}/image/${i}/config`)
+  ))).every(res => res.statusCode===200);
+}
+
+async function imageContainer(img) {
+  var res = await needle('get', `${DEVICE}/container`);
+  return res.body.find(c => c.image===img);
+}
+
+function imageRun(img, cfg) {
+  await needle('post', `${DEVICE}/${img}/run`, cfg, {json: true});
+}
+
+async function containerMaintain(img, cfg) {
+  var c = await imageContainer(img);
+  if(c==null) await imageRun(img, cfg);
+  return await imageContainer(img);
+}
+
+async function appMaintain() {
+  var distancesensor = containerMaintain('ias-distancesensor');
+  var sonarsensor = containerMaintain('ias-sonarsensor');
+  var floweranalysissensor = containerMaintain('ias-floweranalysissensor');
+  var navalminemodel = containerMaintain('ias-navalminemodel');
+  var irismodel = containerMaintain('ias-irismodel');
+  var distancealarmservice = containerMaintain('ias-distancealarmservice', {env: {
+    SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
+    TARGET: `http://${ADDRESS}/distancealarm`,
+  }});
+  var emergencynotificationservice = containerMaintain('ias-emergencynotificationservice', {env: {
+    SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
+    // MAIL
+  }});
+  var counterservice = containerMaintain('ias-counterservice', {env: {
+    TARGET: `http://${ADDRESS}/counter`,
+  }});
+  var irishelperservice = containerMaintain('ias-irishelperservice', {env: {
+    SOURCE: `http://${floweranalysissensor.env.ADDRESS}/status`,
+  }});
+}
 
 
 app.use(express.urlencoded({extended: true}));
