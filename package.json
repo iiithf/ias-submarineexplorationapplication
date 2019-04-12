@@ -1,0 +1,29 @@
+{
+  "name": "ias-submarineexplorationapplication",
+  "version": "0.0.1",
+  "description": "The Application is about exploring a special type of plant whose flower contains some medicinal properties.",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iiithf/ias-submarineexplorationapplication.git"
+  },
+  "keywords": [
+    "ias",
+    "submarine",
+    "exploration",
+    "application"
+  ],
+  "author": "wolfram77@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iiithf/ias-submarineexplorationapplication/issues"
+  },
+  "homepage": "https://github.com/iiithf/ias-submarineexplorationapplication#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "needle": "^2.3.0"
+  }
+}
