@@ -19,12 +19,6 @@ const server = http.createServer(app);
 
 
 
-async function imagesReady() {
-  return (await Promise.all(IMAGES.map(
-    i => needle('get', `${DEVICE}/image/${i}/config`)
-  ))).every(res => res.statusCode===200);
-}
-
 async function imageContainer(img) {
   var res = await needle('get', `${DEVICE}/container`);
   return res.body.find(c => c.image===img);
@@ -40,25 +34,32 @@ async function containerMaintain(img, cfg) {
   return await imageContainer(img);
 }
 
+async function appReady() {
+  return (await Promise.all(IMAGES.map(
+    i => needle('get', `${DEVICE}/image/${i}/config`)
+  ))).every(res => res.statusCode===200);
+}
+
 async function appMaintain() {
-  var distancesensor = containerMaintain('ias-distancesensor');
-  var sonarsensor = containerMaintain('ias-sonarsensor');
-  var floweranalysissensor = containerMaintain('ias-floweranalysissensor');
-  var navalminemodel = containerMaintain('ias-navalminemodel');
-  var irismodel = containerMaintain('ias-irismodel');
-  var distancealarmservice = containerMaintain('ias-distancealarmservice', {env: {
+  var distancesensor = await containerMaintain('ias-distancesensor');
+  var sonarsensor = await containerMaintain('ias-sonarsensor');
+  var floweranalysissensor = await containerMaintain('ias-floweranalysissensor');
+  var navalminemodel = await containerMaintain('ias-navalminemodel');
+  var irismodel = await containerMaintain('ias-irismodel');
+  var distancealarmservice = await containerMaintain('ias-distancealarmservice', {env: {
     SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
     TARGET: `http://${ADDRESS}/distancealarm`,
   }});
-  var emergencynotificationservice = containerMaintain('ias-emergencynotificationservice', {env: {
+  var emergencynotificationservice = await containerMaintain('ias-emergencynotificationservice', {env: {
     SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
     // MAIL
   }});
-  var counterservice = containerMaintain('ias-counterservice', {env: {
+  var counterservice = await containerMaintain('ias-counterservice', {env: {
     TARGET: `http://${ADDRESS}/counter`,
   }});
-  var irishelperservice = containerMaintain('ias-irishelperservice', {env: {
+  var irishelperservice = await containerMaintain('ias-irishelperservice', {env: {
     SOURCE: `http://${floweranalysissensor.env.ADDRESS}/status`,
+    MODEL: `http://${irismodel.env.ADDRESS}/v1/models/model`,
   }});
 }
 
