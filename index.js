@@ -34,6 +34,7 @@ var navalminemodel, irismodel;
 var distancealarmservice, emergencynotificationservice;
 var counterservice, irishelperservice;
 var distancealarm, navalmine, counter, dtime = null;
+var intervalBusy = false;
 
 
 async function imageContainer(img) {
@@ -91,7 +92,7 @@ async function appMaintain() {
   }});
   irishelperservice = await containerMaintain('ias-irishelperservice', {env: {
     SOURCE: `http://${floweranalysissensor.env.ADDRESS}/status`,
-    MODEL: `http://${irismodel.env.ADDRESS.split()[1]}/v1/models/model`,
+    MODEL: `http://${irismodel.env.ADDRESS.split(',')[0]}/v1/models/model`,
   }});
 }
 
@@ -113,7 +114,12 @@ async function onInterval() {
   navalmine = results[0][0][0];
   console.log('navalminestatus', navalmine);
 }
-setInterval(onInterval, DATARATE);
+setInterval(async () => {
+  if(intervalBusy) return;
+  intervalBusy = true;
+  await onInterval();
+  intervalBusy = false;
+}, DATARATE);
 setTimeout(async () => {
   var c = await imageContainer('ias-containerservice');
   await containerStart(c.id);
