@@ -45,10 +45,16 @@ function imageRun(img, cfg) {
   return needle('post', `${DEVICE}/image/${img}/run`, cfg, {json: true});
 }
 
+async function containerConfig(con) {
+  var res = await needle('get', `${DEVICE}/container/${con}/config`);
+  return res.body;
+}
+
 async function containerMaintain(img, cfg) {
   var c = await imageContainer(img);
   if(c==null) await imageRun(img, cfg);
-  return await imageContainer(img);
+  c = await imageContainer(img);
+  return await containerConfig(c.id);
 }
 
 async function appReady() {
