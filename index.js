@@ -53,59 +53,60 @@ async function containerConfig(con) {
 async function containerMaintain(img, cfg) {
   var c = await imageContainer(img);
   if(c==null) await imageRun(img, cfg);
-  c = await imageContainer(img);
+  if(c==null) c = await imageContainer(img);
   return await containerConfig(c.id);
 }
 
+async function containerStart(con) {
+  var c = await containerConfig(con);
+  if((c.state||s.status)!=='exited') return;
+  await needle('post', `${DEVICE}/container/${con}/start`);
+}
+
 async function appReady() {
+  console.log('appReady()');
   return (await Promise.all(IMAGES.map(
     i => needle('get', `${DEVICE}/image/${i}/config`)
   ))).every(res => res.statusCode===200);
 }
 
 async function appMaintain() {
+  console.log('appMaintain()');
   distancesensor = await containerMaintain('ias-distancesensor');
-  console.log('distancesensor', distancesensor);
   sonarsensor = await containerMaintain('ias-sonarsensor');
-  console.log('sonarsensor', sonarsensor);
   floweranalysissensor = await containerMaintain('ias-floweranalysissensor');
-  console.log('floweranalysissensor', floweranalysissensor);
   navalminemodel = await containerMaintain('ias-navalminemodel');
-  console.log('navalminemodel', navalminemodel);
   irismodel = await containerMaintain('ias-irismodel');
-  console.log('irismodel', irismodel);
   distancealarmservice = await containerMaintain('ias-distancealarmservice', {env: {
     SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
     TARGET: `http://${ADDRESS}/distancealarm`,
   }});
-  console.log('distancealarmservice', distancealarmservice);
   emergencynotificationservice = await containerMaintain('ias-emergencynotificationservice', {env: {
     SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
     TRANSPORTHOST, TRANSPORTPORT, TRANSPORTSECURE, TRANSPORTUSER, TRANSPORTPASS,
     MAILFROM, MAILTO, MAILSUBJECT, MAILTEXT, MAILHTML,
   }});
-  console.log('emergencynotificationservice', emergencynotificationservice);
   counterservice = await containerMaintain('ias-counterservice', {env: {
     TARGET: `http://${ADDRESS}/counter`,
   }});
-  console.log('counterservice', counterservice);
   irishelperservice = await containerMaintain('ias-irishelperservice', {env: {
     SOURCE: `http://${floweranalysissensor.env.ADDRESS}/status`,
     MODEL: `http://${irismodel.env.ADDRESS.split()[1]}/v1/models/model`,
   }});
-  console.log('irishelperservice', irishelperservice);
 }
 
 async function onInterval() {
   if(!(await appReady())) return;
   await appMaintain();
   if(!sonarsensor) return;
-  var res = await needle('get', `http://${sonarsensor.env.ADDRESS}/status`);
-  console.log('sonarsensor', sonarsensor, res.body);
+  var res = await needle('get', `${sonarsensor.env.ADDRESS}/status`);
+  console.log('sonarsensor', sonarsensor.env.ADDRESS, res.body);
   var {time, inputs} = res.body;
   if(!navalminemodel) return;
-  var data = {examples: [{inputs: [inputs]}]};
-  res = await needle('post', `http://${navalminemodel.env.ADDRESS.split()[1]}/v1/models/model:classify`, data, {json: true});
+  var data = {examples: [{inputs}]};
+  console.log(navalminemodel.env.ADDRESS);
+  console.log(JSON.stringify(data));
+  res = await needle('post', `${navalminemodel.env.ADDRESS.split(',')[0]}/v1/models/model:classify`, data, {json: true});
   console.log('navalminemodel', navalminemodel.env.ADDRESS, res.body);
   var {results} = res.body;
   results[0].sort((a, b) => b[1]-a[1]);
@@ -113,6 +114,11 @@ async function onInterval() {
   console.log('navalminestatus', navalmine);
 }
 setInterval(onInterval, DATARATE);
+setTimeout(async () => {
+  var c = await imageContainer('ias-containerservice');
+  await containerStart(c.id);
+}, 30000);
+
 
 
 app.use(express.urlencoded({extended: true}));
