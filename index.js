@@ -7,10 +7,10 @@ const path = require('path');
 
 
 const E = process.env;
-const PORT = parseInt(E['PORT']||'8000', 10);
-const ADDRESS = E['ADDRESS']||'127.0.0.1:'+PORT;
+const PORT = parseInt(E['PORT']||'8001', 10);
+const ADDRESS = E['ADDRESS']||'192.168.1.7:'+PORT;
 const ASSETS = path.join(__dirname, 'assets');
-const DEVICE = E['DEVICE']||'http://127.0.0.1:8000';
+const DEVICE = E['DEVICE']||'http://192.168.1.7:8000';
 const DATARATE = parseInt(E['DATARATE']||'10000', 10);
 const IMAGES = [
   'ias-distancesensor', 'ias-sonarsensor', 'ias-floweranalysissensor',
@@ -42,7 +42,7 @@ async function imageContainer(img) {
 }
 
 function imageRun(img, cfg) {
-  return needle('post', `${DEVICE}/${img}/run`, cfg, {json: true});
+  return needle('post', `${DEVICE}/image/${img}/run`, cfg, {json: true});
 }
 
 async function containerMaintain(img, cfg) {
@@ -59,6 +59,7 @@ async function appReady() {
 
 async function appMaintain() {
   distancesensor = await containerMaintain('ias-distancesensor');
+  console.log('distancesensor', distancesensor);
   sonarsensor = await containerMaintain('ias-sonarsensor');
   floweranalysissensor = await containerMaintain('ias-floweranalysissensor');
   navalminemodel = await containerMaintain('ias-navalminemodel');
