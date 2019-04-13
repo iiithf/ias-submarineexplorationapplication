@@ -8,6 +8,7 @@ const path = require('path');
 
 const E = process.env;
 const PORT = parseInt(E['PORT']||'8000', 10);
+const ADDRESS = E['ADDRESS']||'127.0.0.1:'+PORT;
 const ASSETS = path.join(__dirname, 'assets');
 const DEVICE = E['DEVICE']||'http://127.0.0.1:8000';
 const DATARATE = parseInt(E['DATARATE']||'10000', 10);
