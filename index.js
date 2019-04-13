@@ -92,7 +92,7 @@ async function appMaintain() {
   }});
   irishelperservice = await containerMaintain('ias-irishelperservice', {env: {
     SOURCE: `http://${floweranalysissensor.env.ADDRESS}/status`,
-    MODEL: `http://${irismodel.env.ADDRESS.split(',')[0]}/v1/models/model`,
+    MODEL: `http://${irismodel.env.ADDRESS.split(',')[1]}/v1/models/model`,
   }});
 }
 
@@ -107,11 +107,11 @@ async function onInterval() {
   var data = {examples: [{inputs}]};
   console.log(navalminemodel.env.ADDRESS);
   console.log(JSON.stringify(data));
-  res = await needle('post', `${navalminemodel.env.ADDRESS.split(',')[0]}/v1/models/model:classify`, data, {json: true});
+  res = await needle('post', `${navalminemodel.env.ADDRESS.split(',')[1]}/v1/models/model:classify`, data, {json: true});
   console.log('navalminemodel', navalminemodel.env.ADDRESS, res.body);
   var {results} = res.body;
-  results[0].sort((a, b) => b[1]-a[1]);
-  navalmine = results[0][0][0];
+  results[1].sort((a, b) => b[1]-a[1]);
+  navalmine = results[1][1][1];
   console.log('navalminestatus', navalmine);
 }
 setInterval(async () => {
