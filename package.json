@@ -1,6 +1,6 @@
 {
   "name": "ias-submarineexplorationapplication",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "The Application is about exploring a special type of plant whose flower contains some medicinal properties.",
   "main": "index.js",
   "scripts": {

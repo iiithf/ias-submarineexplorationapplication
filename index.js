@@ -61,25 +61,33 @@ async function appMaintain() {
   distancesensor = await containerMaintain('ias-distancesensor');
   console.log('distancesensor', distancesensor);
   sonarsensor = await containerMaintain('ias-sonarsensor');
+  console.log('sonarsensor', sonarsensor);
   floweranalysissensor = await containerMaintain('ias-floweranalysissensor');
+  console.log('floweranalysissensor', floweranalysissensor);
   navalminemodel = await containerMaintain('ias-navalminemodel');
+  console.log('navalminemodel', navalminemodel);
   irismodel = await containerMaintain('ias-irismodel');
+  console.log('irismodel', irismodel);
   distancealarmservice = await containerMaintain('ias-distancealarmservice', {env: {
     SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
     TARGET: `http://${ADDRESS}/distancealarm`,
   }});
+  console.log('distancealarmservice', distancealarmservice);
   emergencynotificationservice = await containerMaintain('ias-emergencynotificationservice', {env: {
     SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
     TRANSPORTHOST, TRANSPORTPORT, TRANSPORTSECURE, TRANSPORTUSER, TRANSPORTPASS,
     MAILFROM, MAILTO, MAILSUBJECT, MAILTEXT, MAILHTML,
   }});
+  console.log('emergencynotificationservice', emergencynotificationservice);
   counterservice = await containerMaintain('ias-counterservice', {env: {
     TARGET: `http://${ADDRESS}/counter`,
   }});
+  console.log('counterservice', counterservice);
   irishelperservice = await containerMaintain('ias-irishelperservice', {env: {
     SOURCE: `http://${floweranalysissensor.env.ADDRESS}/status`,
     MODEL: `http://${irismodel.env.ADDRESS.split()[1]}/v1/models/model`,
   }});
+  console.log('irishelperservice', irishelperservice);
 }
 
 async function onInterval() {
