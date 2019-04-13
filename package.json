@@ -1,6 +1,6 @@
 {
   "name": "ias-submarineexplorationapplication",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "The Application is about exploring a special type of plant whose flower contains some medicinal properties.",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/iiithf/ias-submarineexplorationapplication#readme",
   "dependencies": {
+    "boolean": "^1.0.0",
     "express": "^4.16.4",
     "needle": "^2.3.0"
   }

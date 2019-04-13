@@ -1,5 +1,6 @@
 const express = require('express');
 const needle = require('needle');
+const boolean = require('boolean');
 const http = require('http');
 const path = require('path');
 
@@ -15,13 +16,23 @@ const IMAGES = [
   'ias-navalminemodel', 'ias-irismodel', 'ias-distancealarmservice',
   'ias-emergencynotificationservice', 'ias-counterservice', 'ias-irishelperservice',
 ];
+const TRANSPORTHOST = E['TRANSPORTHOST']||'smtp.gmail.com';
+const TRANSPORTPORT = parseInt(E['TRANSPORTPORT']||'587', 10);
+const TRANSPORTSECURE = boolean(E['TRANSPORTSECURE']||'false');
+const TRANSPORTUSER = E['TRANSPORTUSER']||'';
+const TRANSPORTPASS = E['TRANSPORTPASS']||'';
+const MAILFROM = E['MAILFROM']||'';
+const MAILTO = E['MAILTO']||'';
+const MAILSUBJECT = E['MAILSUBJECT']||'';
+const MAILTEXT = E['MAILTEXT']||'';
+const MAILHTML = E['MAILHTML']||'';
 const app = express();
 const server = http.createServer(app);
 var distancesensor, sonarsensor, floweranalysissensor;
 var navalminemodel, irismodel;
 var distancealarmservice, emergencynotificationservice;
 var counterservice, irishelperservice;
-var distancealarm, navalmine, counter, dtime = new Date();
+var distancealarm, navalmine, counter, dtime = null;
 
 
 async function imageContainer(img) {
@@ -30,7 +41,7 @@ async function imageContainer(img) {
 }
 
 function imageRun(img, cfg) {
-  await needle('post', `${DEVICE}/${img}/run`, cfg, {json: true});
+  return needle('post', `${DEVICE}/${img}/run`, cfg, {json: true});
 }
 
 async function containerMaintain(img, cfg) {
@@ -57,7 +68,8 @@ async function appMaintain() {
   }});
   emergencynotificationservice = await containerMaintain('ias-emergencynotificationservice', {env: {
     SOURCE: `http://${distancesensor.env.ADDRESS}/status`,
-    // MAIL
+    TRANSPORTHOST, TRANSPORTPORT, TRANSPORTSECURE, TRANSPORTUSER, TRANSPORTPASS,
+    MAILFROM, MAILTO, MAILSUBJECT, MAILTEXT, MAILHTML,
   }});
   counterservice = await containerMaintain('ias-counterservice', {env: {
     TARGET: `http://${ADDRESS}/counter`,
@@ -68,7 +80,9 @@ async function appMaintain() {
   }});
 }
 
-function onInterval() {
+async function onInterval() {
+  if(!(await appReady())) return;
+  await appMaintain();
   if(!sonarsensor) return;
   var res = await needle('get', `http://${sonarsensor.env.ADDRESS}/status`);
   console.log('sonarsensor', sonarsensor, res.body);
