@@ -110,8 +110,8 @@ async function onInterval() {
   res = await needle('post', `${navalminemodel.env.ADDRESS.split(',')[1]}/v1/models/model:classify`, data, {json: true});
   console.log('navalminemodel', navalminemodel.env.ADDRESS, res.body);
   var {results} = res.body;
-  results[1].sort((a, b) => b[1]-a[1]);
-  navalmine = results[1][1][1];
+  results[0].sort((a, b) => b[1]-a[1]);
+  navalmine = results[0][0][0];
   console.log('navalminestatus', navalmine);
 }
 setInterval(async () => {
